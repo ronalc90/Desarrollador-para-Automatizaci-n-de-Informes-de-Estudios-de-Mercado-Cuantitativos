@@ -31,7 +31,7 @@ import typer
 from rich.console import Console
 from rich.logging import RichHandler
 
-from engine.batch_processor import process_batch
+from engine.batch_processor import process_batch, write_batch_report_json
 from engine.excel_reader import ExcelReaderError
 from engine.inspector import inspect_template
 from engine.ppt_builder import PPTBuilderError, build_presentation
@@ -139,6 +139,16 @@ def batch(
     ),
     output: Path = typer.Option(Path("output"), "--output", "-o"),
     pattern: str = typer.Option("*.xlsx", "--pattern"),
+    log_file: Optional[Path] = typer.Option(
+        None,
+        "--log-file",
+        help="Archivo donde se escribira el log detallado del batch.",
+    ),
+    report_json: Optional[Path] = typer.Option(
+        None,
+        "--report-json",
+        help="Archivo JSON donde se escribira el reporte estructurado.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Procesa todos los .xlsx de una carpeta con el mismo template."""
@@ -149,8 +159,12 @@ def batch(
         mapping=mapping,
         output_dir=output,
         pattern=pattern,
+        log_file=log_file,
     )
     console.print(result.summary())
+    if report_json is not None:
+        written = write_batch_report_json(result, report_json)
+        console.print(f"[green]Reporte JSON:[/green] {written}")
     if result.failed:
         raise typer.Exit(code=1)
 
