@@ -46,6 +46,7 @@ htmlcov/
 # Outputs
 output/
 *.log
+web_workdir/
 
 # Archivos temporales de Office
 ~$*.xlsx

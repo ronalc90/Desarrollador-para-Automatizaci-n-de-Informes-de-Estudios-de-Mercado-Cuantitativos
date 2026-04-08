@@ -208,6 +208,45 @@ def inspect(
         console.print(report.as_text())
 
 
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host de bind."),
+    port: int = typer.Option(8000, "--port", "-p", help="Puerto de bind."),
+    workdir: Path = typer.Option(
+        Path("web_workdir"),
+        "--workdir",
+        help="Directorio de trabajo donde se guardan uploads y outputs.",
+    ),
+    default_mapping: Optional[Path] = typer.Option(
+        None,
+        "--default-mapping",
+        help="Mapping YAML por defecto cuando el request no envia uno.",
+    ),
+    reload: bool = typer.Option(
+        False, "--reload", help="Modo hot-reload para desarrollo."
+    ),
+) -> None:
+    """Levanta la interfaz web (Etapa 2) con FastAPI + uvicorn."""
+    try:
+        import uvicorn
+    except ImportError as exc:  # pragma: no cover
+        raise typer.Exit(
+            "uvicorn no esta instalado. Corre `pip install -r requirements.txt`."
+        ) from exc
+
+    if reload:
+        uvicorn.run("web.app:app", host=host, port=port, reload=True)
+        return
+
+    from web.app import create_app
+
+    app_instance = create_app(
+        workdir=workdir,
+        default_mapping=default_mapping,
+    )
+    uvicorn.run(app_instance, host=host, port=port)
+
+
 def main() -> None:
     app()
 

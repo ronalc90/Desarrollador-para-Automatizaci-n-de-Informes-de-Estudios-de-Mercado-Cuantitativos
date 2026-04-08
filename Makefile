@@ -10,7 +10,7 @@ PIP    := $(PYTHON) -m pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help venv install test lint clean fixtures inspect run-example
+.PHONY: help venv install test lint clean fixtures inspect run-example serve
 
 help: ## Lista los comandos disponibles
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -28,6 +28,11 @@ test: ## Corre toda la suite de tests
 
 lint: ## Verificacion rapida de sintaxis de todos los modulos
 	$(PYTHON) -m py_compile engine/*.py main.py
+	@if [ -d web ]; then $(PYTHON) -m py_compile web/*.py; fi
+	@if [ -d preprocess ]; then $(PYTHON) -m py_compile preprocess/*.py; fi
+
+serve: ## Levanta la interfaz web (Etapa 2) en http://127.0.0.1:8000
+	$(PYTHON) main.py serve --workdir web_workdir
 
 fixtures: ## Regenera los fixtures de prueba
 	$(PYTHON) tests/fixtures/make_fixtures.py
