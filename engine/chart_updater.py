@@ -48,13 +48,25 @@ class ChartDataShapeError(ChartUpdaterError):
 
 
 def _coerce_numeric(value) -> float:
-    """Convierte un valor arbitrario a ``float``. Si no puede, devuelve 0.0."""
+    """Convierte un valor arbitrario a ``float``. Si no puede, devuelve 0.0.
+
+    Trata NaN/Inf/None/strings no numericas como 0.0 para evitar que
+    openpyxl/python-pptx fallen al serializar el workbook embebido.
+    """
+    import math
+
     if value is None:
         return 0.0
     if isinstance(value, (int, float)):
-        return float(value)
+        f = float(value)
+        if math.isnan(f) or math.isinf(f):
+            return 0.0
+        return f
     try:
-        return float(str(value).replace(",", "."))
+        f = float(str(value).replace(",", "."))
+        if math.isnan(f) or math.isinf(f):
+            return 0.0
+        return f
     except (TypeError, ValueError):
         return 0.0
 

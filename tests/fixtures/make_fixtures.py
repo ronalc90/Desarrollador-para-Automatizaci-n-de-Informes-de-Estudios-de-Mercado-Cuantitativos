@@ -197,8 +197,92 @@ def build_sample_mapping_multi(path: Path) -> Path:
 # Versión del esquema de fixtures. Se incrementa cuando cambia la
 # cantidad/forma de los fixtures generados para que ``ensure_fixtures``
 # pueda detectar archivos viejos y regenerarlos.
-FIXTURES_SCHEMA_VERSION = 2
+FIXTURES_SCHEMA_VERSION = 3
 _SCHEMA_MARKER = "fixtures.version"
+
+
+# ---------------------------------------------------------------------- #
+# Fixtures Etapa 3: procesamiento previo                                  #
+# ---------------------------------------------------------------------- #
+
+RESPONSES_ROWS = [
+    # respondent_id, segmento, edad, satisfaccion (1-5), nps (0-10), gasto
+    (1, "Jovenes", 22, 5, 10, 120),
+    (2, "Jovenes", 25, 4, 8, 95),
+    (3, "Jovenes", 28, 3, 6, 80),
+    (4, "Jovenes", 31, 5, 9, 150),
+    (5, "Adultos", 35, 4, 7, 200),
+    (6, "Adultos", 40, 3, 5, 180),
+    (7, "Adultos", 45, 2, 3, 90),
+    (8, "Adultos", 50, 5, 10, 250),
+    (9, "Adultos", 55, 4, 8, 210),
+    (10, "Mayores", 60, 3, 6, 170),
+    (11, "Mayores", 65, 2, 4, 100),
+    (12, "Mayores", 70, 4, 7, 140),
+    (13, "Mayores", 72, 5, 9, 160),
+    (14, "Jovenes", 24, 4, 8, 130),
+    (15, "Adultos", 42, 5, 10, 220),
+]
+
+
+def build_sample_responses_csv(path: Path) -> Path:
+    """CSV con datos crudos de respuestas de un estudio simulado."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    header = "respondent_id,segmento,edad,satisfaccion,nps,gasto\n"
+    lines = [
+        ",".join(str(v) for v in row) for row in RESPONSES_ROWS
+    ]
+    path.write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def build_sample_tab_plan(path: Path) -> Path:
+    """Tab Plan en YAML compatible con el CSV de respuestas."""
+    content = (
+        "version: 1\n"
+        "crosses:\n"
+        "  - name: \"Satisfaccion por segmento\"\n"
+        "    rows: [satisfaccion]\n"
+        "    columns: [segmento]\n"
+        "  - name: \"NPS promedio por segmento\"\n"
+        "    rows: [segmento]\n"
+        "    values: nps\n"
+        "    aggregate: mean\n"
+        "  - name: \"Gasto total por segmento\"\n"
+        "    rows: [segmento]\n"
+        "    values: gasto\n"
+        "    aggregate: sum\n"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
+def build_sample_tab_plan_xlsx(path: Path) -> Path:
+    """Tab Plan embebido en la hoja 'TabPlan' de un xlsx."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "TabPlan"
+    ws.append(["name", "rows", "columns", "values", "aggregate", "percentage"])
+    ws.append([
+        "Satisfaccion por segmento",
+        "satisfaccion",
+        "segmento",
+        None,
+        "count",
+        "none",
+    ])
+    ws.append([
+        "NPS promedio por segmento",
+        "segmento",
+        None,
+        "nps",
+        "mean",
+        "none",
+    ])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(path)
+    return path
 
 
 def _read_schema_version(fixtures_dir: Path) -> int:
@@ -228,6 +312,11 @@ def ensure_fixtures(fixtures_dir: Path) -> None:
     mapping = fixtures_dir / "sample_mapping.yaml"
     mapping_multi = fixtures_dir / "sample_mapping_multi.yaml"
 
+    # Etapa 3.
+    responses_csv = fixtures_dir / "sample_responses.csv"
+    tab_plan_yaml = fixtures_dir / "sample_tab_plan.yaml"
+    tab_plan_xlsx = fixtures_dir / "sample_tab_plan.xlsx"
+
     current_version = _read_schema_version(fixtures_dir)
     stale = current_version < FIXTURES_SCHEMA_VERSION
 
@@ -239,6 +328,12 @@ def ensure_fixtures(fixtures_dir: Path) -> None:
         build_sample_mapping(mapping)
     if stale or not mapping_multi.exists():
         build_sample_mapping_multi(mapping_multi)
+    if stale or not responses_csv.exists():
+        build_sample_responses_csv(responses_csv)
+    if stale or not tab_plan_yaml.exists():
+        build_sample_tab_plan(tab_plan_yaml)
+    if stale or not tab_plan_xlsx.exists():
+        build_sample_tab_plan_xlsx(tab_plan_xlsx)
 
     _write_schema_version(fixtures_dir)
 

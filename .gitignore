@@ -57,4 +57,7 @@ tests/fixtures/sample_data.xlsx
 tests/fixtures/sample_template.pptx
 tests/fixtures/sample_mapping.yaml
 tests/fixtures/sample_mapping_multi.yaml
+tests/fixtures/sample_responses.csv
+tests/fixtures/sample_tab_plan.yaml
+tests/fixtures/sample_tab_plan.xlsx
 tests/fixtures/fixtures.version
