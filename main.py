@@ -33,6 +33,7 @@ from rich.logging import RichHandler
 
 from engine.batch_processor import process_batch
 from engine.excel_reader import ExcelReaderError
+from engine.inspector import inspect_template
 from engine.ppt_builder import PPTBuilderError, build_presentation
 from engine.validator import validate_all
 
@@ -172,6 +173,25 @@ def validate(
     console.print(result.as_report())
     if not result.ok:
         raise typer.Exit(code=2)
+
+
+@app.command()
+def inspect(
+    template: Path = typer.Option(
+        ..., "--template", "-t", exists=True, help="Template .pptx a inspeccionar."
+    ),
+    mapping_stub: bool = typer.Option(
+        False,
+        "--mapping-stub",
+        help="Imprime un stub de mapping.yaml listo para editar.",
+    ),
+) -> None:
+    """Lista slides y graficos del template para armar el mapping.yaml."""
+    report = inspect_template(template)
+    if mapping_stub:
+        console.print(report.as_mapping_stub())
+    else:
+        console.print(report.as_text())
 
 
 def main() -> None:
