@@ -40,3 +40,8 @@ def sample_pptx(fixtures_dir: Path) -> Path:
 @pytest.fixture(scope="session")
 def sample_mapping(fixtures_dir: Path) -> Path:
     return fixtures_dir / "sample_mapping.yaml"
+
+
+@pytest.fixture(scope="session")
+def sample_mapping_multi(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "sample_mapping_multi.yaml"

@@ -1,6 +1,0 @@
-slides:
-  - slide_index: 2
-    charts:
-      - chart_name: "Grafico satisfaccion"
-        excel_sheet: "P1_satisfaccion"
-        data_range: "A1:E6"

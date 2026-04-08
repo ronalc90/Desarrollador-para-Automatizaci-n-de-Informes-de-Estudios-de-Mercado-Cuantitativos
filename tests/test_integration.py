@@ -100,3 +100,43 @@ def test_batch_pipeline(
     for item in result.successful:
         assert item.build_result is not None
         assert item.build_result.output_path.exists()
+
+
+def test_pipeline_with_chart_index_matching(
+    tmp_path: Path,
+    sample_pptx: Path,
+    sample_xlsx: Path,
+    sample_mapping_multi: Path,
+) -> None:
+    """Verifica matching por chart_index en un slide con varios graficos."""
+    result = validate_all(sample_pptx, sample_xlsx, sample_mapping_multi)
+    assert result.ok, result.as_report()
+
+    build_result = build_presentation(
+        template_path=sample_pptx,
+        excel_path=sample_xlsx,
+        mapping=sample_mapping_multi,
+        output_dir=tmp_path / "out",
+    )
+    assert build_result.ok
+    # 1 grafico en slide 2 + 2 graficos en slide 3 = 3 graficos actualizados.
+    assert build_result.charts_updated == 3
+
+    prs = Presentation(str(build_result.output_path))
+
+    # Slide 3 contiene los dos graficos por chart_index.
+    slide3 = prs.slides[2]
+    charts = [s.chart for s in slide3.shapes if s.has_chart]
+    assert len(charts) == 2
+
+    # chart_index 0 -> tabla izquierda (Canal, Uso)
+    left_categories = [c for c in charts[0].plots[0].categories]
+    assert left_categories == ["Web", "App", "Tienda"]
+    assert charts[0].series[0].name == "Uso"
+    assert list(charts[0].series[0].values) == [40, 55, 30]
+
+    # chart_index 1 -> tabla derecha (Canal, Score)
+    right_categories = [c for c in charts[1].plots[0].categories]
+    assert right_categories == ["Web", "App", "Tienda"]
+    assert charts[1].series[0].name == "Score"
+    assert list(charts[1].series[0].values) == [7, 9, 6]
