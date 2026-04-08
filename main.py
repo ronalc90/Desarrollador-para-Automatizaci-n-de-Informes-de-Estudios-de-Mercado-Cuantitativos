@@ -247,6 +247,79 @@ def serve(
     uvicorn.run(app_instance, host=host, port=port)
 
 
+@app.command()
+def preprocess(
+    data: Path = typer.Option(
+        ...,
+        "--data",
+        "-d",
+        exists=True,
+        help="Archivo de respuestas (.sav .dta .csv .xlsx .dat).",
+    ),
+    tabplan: Optional[Path] = typer.Option(
+        None,
+        "--tabplan",
+        "-p",
+        help="Tab Plan en YAML. Mutuamente excluyente con --tabplan-text.",
+    ),
+    tabplan_text: Optional[Path] = typer.Option(
+        None,
+        "--tabplan-text",
+        help="Archivo de texto libre interpretado por el LLM interpreter.",
+    ),
+    tabplan_xlsx: Optional[Path] = typer.Option(
+        None,
+        "--tabplan-xlsx",
+        help="Tab Plan embebido en la hoja 'TabPlan' de un .xlsx.",
+    ),
+    output: Path = typer.Option(
+        Path("output/crosstabs.xlsx"),
+        "--output",
+        "-o",
+        help="Ruta del xlsx de salida con las tablas cruzadas.",
+    ),
+    sheet: Optional[str] = typer.Option(
+        None,
+        "--sheet",
+        help="Hoja del xlsx de datos (solo si --data es .xlsx).",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Genera un xlsx de tablas cruzadas a partir de respuestas + Tab Plan."""
+    _configure_logging(verbose)
+
+    from preprocess.crosstabs import run_tab_plan
+    from preprocess.llm_interpreter import interpret_tab_plan_text
+    from preprocess.responses_reader import ResponsesReader
+    from preprocess.tab_plan import (
+        load_tab_plan_excel,
+        load_tab_plan_yaml,
+    )
+
+    sources = [p for p in (tabplan, tabplan_text, tabplan_xlsx) if p is not None]
+    if len(sources) != 1:
+        console.print(
+            "[red]Debe indicarse exactamente uno de --tabplan / "
+            "--tabplan-text / --tabplan-xlsx[/red]"
+        )
+        raise typer.Exit(code=2)
+
+    if tabplan is not None:
+        plan = load_tab_plan_yaml(tabplan)
+    elif tabplan_xlsx is not None:
+        plan = load_tab_plan_excel(tabplan_xlsx)
+    else:
+        assert tabplan_text is not None
+        text_content = tabplan_text.read_text(encoding="utf-8")
+        plan = interpret_tab_plan_text(text_content)
+
+    responses = ResponsesReader.load(data, sheet=sheet)
+    console.print(responses.describe())
+
+    result = run_tab_plan(plan, responses, output)
+    console.print(result.summary())
+
+
 def main() -> None:
     app()
 

@@ -45,3 +45,23 @@ def sample_mapping(fixtures_dir: Path) -> Path:
 @pytest.fixture(scope="session")
 def sample_mapping_multi(fixtures_dir: Path) -> Path:
     return fixtures_dir / "sample_mapping_multi.yaml"
+
+
+# ---------------------------------------------------------------------- #
+# Fixtures Etapa 3                                                        #
+# ---------------------------------------------------------------------- #
+
+
+@pytest.fixture(scope="session")
+def sample_responses_csv(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "sample_responses.csv"
+
+
+@pytest.fixture(scope="session")
+def sample_tab_plan_yaml(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "sample_tab_plan.yaml"
+
+
+@pytest.fixture(scope="session")
+def sample_tab_plan_xlsx(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "sample_tab_plan.xlsx"
