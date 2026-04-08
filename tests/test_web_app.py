@@ -38,6 +38,11 @@ def test_ui_root_returns_html(client: TestClient) -> None:
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
     assert "PPT Engine" in resp.text
+
+
+def test_ui_app_has_form(client: TestClient) -> None:
+    resp = client.get("/app")
+    assert resp.status_code == 200
     assert "Generar PPT" in resp.text
 
 

@@ -171,6 +171,26 @@ def build_sample_mapping(path: Path) -> Path:
     return path
 
 
+def build_sample_mapping_broken(path: Path) -> Path:
+    """Mapping con errores intencionales para demos de validacion."""
+    content = (
+        "slides:\n"
+        "  - slide_index: 99\n"
+        "    charts:\n"
+        "      - chart_name: \"Grafico que no existe\"\n"
+        "        excel_sheet: \"P1_satisfaccion\"\n"
+        "        data_range: \"A1:E6\"\n"
+        "  - slide_index: 2\n"
+        "    charts:\n"
+        "      - chart_name: \"Grafico satisfaccion\"\n"
+        "        excel_sheet: \"Hoja_inexistente\"\n"
+        "        data_range: \"A1:E6\"\n"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
 def build_sample_mapping_multi(path: Path) -> Path:
     """Mapping extendido con matching por chart_index en el slide 3."""
     content = (
@@ -197,7 +217,7 @@ def build_sample_mapping_multi(path: Path) -> Path:
 # Versión del esquema de fixtures. Se incrementa cuando cambia la
 # cantidad/forma de los fixtures generados para que ``ensure_fixtures``
 # pueda detectar archivos viejos y regenerarlos.
-FIXTURES_SCHEMA_VERSION = 3
+FIXTURES_SCHEMA_VERSION = 4
 _SCHEMA_MARKER = "fixtures.version"
 
 
@@ -311,6 +331,7 @@ def ensure_fixtures(fixtures_dir: Path) -> None:
     pptx = fixtures_dir / "sample_template.pptx"
     mapping = fixtures_dir / "sample_mapping.yaml"
     mapping_multi = fixtures_dir / "sample_mapping_multi.yaml"
+    mapping_broken = fixtures_dir / "sample_mapping_broken.yaml"
 
     # Etapa 3.
     responses_csv = fixtures_dir / "sample_responses.csv"
@@ -328,6 +349,8 @@ def ensure_fixtures(fixtures_dir: Path) -> None:
         build_sample_mapping(mapping)
     if stale or not mapping_multi.exists():
         build_sample_mapping_multi(mapping_multi)
+    if stale or not mapping_broken.exists():
+        build_sample_mapping_broken(mapping_broken)
     if stale or not responses_csv.exists():
         build_sample_responses_csv(responses_csv)
     if stale or not tab_plan_yaml.exists():
