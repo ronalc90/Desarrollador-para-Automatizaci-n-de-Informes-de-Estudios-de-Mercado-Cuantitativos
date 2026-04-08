@@ -1,0 +1,46 @@
+# Mapping slide -> chart -> hoja del Excel -> rango de celdas.
+#
+# Esquema:
+#
+#   slides:
+#     - slide_index: <int>         # 1-based, posicion del slide en el template
+#       charts:
+#         - chart_name: <str>      # Opcional, nombre de la shape del grafico
+#           chart_index: <int>     # Opcional, 0-based entre los graficos del slide
+#           excel_sheet: <str>     # Hoja del Excel de datos
+#           data_range: <str>      # Rango A1 de la tabla con encabezado
+#
+# Reglas:
+# - chart_name tiene prioridad sobre chart_index.
+# - data_range debe incluir la fila de encabezado (se usa como nombres
+#   de serie del grafico).
+# - La primera columna del rango se trata como categorias.
+# - El resto de las columnas se tratan como series numericas.
+
+slides:
+  - slide_index: 2
+    charts:
+      - chart_name: "Grafico satisfaccion"
+        excel_sheet: "P1_satisfaccion"
+        data_range: "A1:E6"
+
+  - slide_index: 3
+    charts:
+      - chart_name: "Grafico atributos"
+        excel_sheet: "P2_atributos"
+        data_range: "A1:D10"
+
+  - slide_index: 5
+    charts:
+      - chart_name: "Grafico NPS"
+        excel_sheet: "P3_nps"
+        data_range: "A1:C4"
+
+  - slide_index: 7
+    charts:
+      - chart_index: 0
+        excel_sheet: "P4_recomendacion"
+        data_range: "A1:B8"
+      - chart_index: 1
+        excel_sheet: "P4_recomendacion"
+        data_range: "D1:E8"

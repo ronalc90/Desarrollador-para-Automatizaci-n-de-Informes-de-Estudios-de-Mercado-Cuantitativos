@@ -50,3 +50,10 @@ output/
 # Archivos temporales de Office
 ~$*.xlsx
 ~$*.pptx
+
+# Fixtures regenerables automaticamente por tests/fixtures/make_fixtures.py
+tests/fixtures/sample_data.xlsx
+tests/fixtures/sample_template.pptx
+tests/fixtures/sample_mapping.yaml
+tests/fixtures/sample_mapping_multi.yaml
+tests/fixtures/fixtures.version
